@@ -43,7 +43,7 @@ function defaultState() {
 
 function resolveStartAz() {
   if (state.startBMode && state.startB) {
-    const az = azimuthBetween(state.startPoint, state.startB);
+    const az = azimuthBetween(state.startB, state.startPoint);
     if (az !== null) return az;
   }
   if (state.startAzMode === 'decimal') return state.startAzDecimal;
@@ -52,7 +52,7 @@ function resolveStartAz() {
 
 function resolveEndAz() {
   if (state.endCMode && state.endC) {
-    const az = azimuthBetween(state.endC, state.endPoint);
+    const az = azimuthBetween(state.endPoint, state.endC);
     if (az !== null) return az;
   }
   if (state.endAzMode === 'decimal') return state.endAzDecimal;
@@ -186,22 +186,26 @@ function renderInputs() {
   $('#btn-toggle-start-decimal').classList.toggle('active', !isStartDms);
   $('#btn-toggle-start-decimal').textContent = isStartDms ? '⇄ 十进制' : '⇄ 度分秒';
 
+  $('#start-manual-panel').hidden = state.startBMode;
   $('#start-reverse-panel').hidden = !state.startBMode;
-  $('#btn-toggle-start-reverse').classList.toggle('active', state.startBMode);
+  $$('input[name="start_source"]').forEach(r => {
+    r.checked = (r.value === 'reverse' ? state.startBMode : !state.startBMode);
+  });
   if (state.startB) {
     $('#start-b-name').value = state.startB.name;
     $('#start-b-x').value   = state.startB.x;
     $('#start-b-y').value   = state.startB.y;
   }
+  const startBName = state.startB ? state.startB.name : 'B';
+  const startPName = state.startPoint.name || 'A1';
+  $('#start-az-name-display').textContent = `${startBName}${startPName}`;
+
   const startBResolved = state.startBMode && state.startB
-    ? azimuthBetween(state.startPoint, state.startB)
+    ? azimuthBetween(state.startB, state.startPoint)
     : null;
   $('#start-b-az-display').textContent = startBResolved !== null
     ? formatDms(startBResolved)
-    : '— (需填 A 和 B 坐标)';
-
-  const startManual = $('#start-az-dms-row').parentElement;
-  startManual.classList.toggle('auto-override', state.startBMode);
+    : `— (需填 ${startBName} 和 ${startPName} 坐标)`;
 
   $('#end-name').value = state.endPoint.name;
   $('#end-x').value = state.endPoint.x;
@@ -217,22 +221,26 @@ function renderInputs() {
   $('#btn-toggle-end-decimal').classList.toggle('active', !isEndDms);
   $('#btn-toggle-end-decimal').textContent = isEndDms ? '⇄ 十进制' : '⇄ 度分秒';
 
+  $('#end-manual-panel').hidden = state.endCMode;
   $('#end-reverse-panel').hidden = !state.endCMode;
-  $('#btn-toggle-end-reverse').classList.toggle('active', state.endCMode);
+  $$('input[name="end_source"]').forEach(r => {
+    r.checked = (r.value === 'reverse' ? state.endCMode : !state.endCMode);
+  });
   if (state.endC) {
     $('#end-c-name').value = state.endC.name;
     $('#end-c-x').value   = state.endC.x;
     $('#end-c-y').value   = state.endC.y;
   }
+  const endCName = state.endC ? state.endC.name : 'C';
+  const endPName = state.endPoint.name || 'D';
+  $('#end-az-name-display').textContent = `${endPName}${endCName}`;
+
   const endCResolved = state.endCMode && state.endC
-    ? azimuthBetween(state.endC, state.endPoint)
+    ? azimuthBetween(state.endPoint, state.endC)
     : null;
   $('#end-c-az-display').textContent = endCResolved !== null
     ? formatDms(endCResolved)
-    : '— (需填 C 和 D 坐标)';
-
-  const endManual = $('#end-az-dms-row').parentElement;
-  endManual.classList.toggle('auto-override', state.endCMode);
+    : `— (需填 ${endPName} 和 ${endCName} 坐标)`;
 
   $('#k-limit-select').value = String(state.kLimit);
   $(`input[name="angle-type"][value="${state.angleType}"]`).checked = true;
@@ -427,21 +435,25 @@ function renderDerived() {
   // 起算方位角反算显示
   if (state.startBMode) {
     const az = state.startB
-      ? azimuthBetween(state.startPoint, state.startB)
+      ? azimuthBetween(state.startB, state.startPoint)
       : null;
+    const startBName = state.startB ? state.startB.name : 'B';
+    const startPName = state.startPoint.name || 'A1';
     $('#start-b-az-display').textContent = az !== null
       ? formatDms(az)
-      : '— (需填 A 和 B 坐标)';
+      : `— (需填 ${startBName} 和 ${startPName} 坐标)`;
   }
 
   // 终止方位角反算显示
   if (state.endCMode) {
     const az = state.endC
-      ? azimuthBetween(state.endC, state.endPoint)
+      ? azimuthBetween(state.endPoint, state.endC)
       : null;
+    const endCName = state.endC ? state.endC.name : 'C';
+    const endPName = state.endPoint.name || 'D';
     $('#end-c-az-display').textContent = az !== null
       ? formatDms(az)
-      : '— (需填 C 和 D 坐标)';
+      : `— (需填 ${endPName} 和 ${endCName} 坐标)`;
   }
 }
 
@@ -473,17 +485,19 @@ function bindEvents() {
     }
     render();
   });
-  $('#btn-toggle-start-reverse').addEventListener('click', () => {
-    state.startBMode = !state.startBMode;
-    if (state.startBMode && !state.startB) {
-      const az = dmsToDecimal(state.startAzimuth.d, state.startAzimuth.m, state.startAzimuth.s);
-      state.startB = {
-        name: 'B',
-        x: state.startPoint.x + 100 * Math.cos(az * DEG),
-        y: state.startPoint.y + 100 * Math.sin(az * DEG)
-      };
-    }
-    render();
+  $$('input[name="start_source"]').forEach(r => {
+    r.addEventListener('change', e => {
+      state.startBMode = (e.target.value === 'reverse');
+      if (state.startBMode && !state.startB) {
+        const az = dmsToDecimal(state.startAzimuth.d, state.startAzimuth.m, state.startAzimuth.s);
+        state.startB = {
+          name: 'B',
+          x: state.startPoint.x - 100 * Math.cos(az * DEG),
+          y: state.startPoint.y - 100 * Math.sin(az * DEG)
+        };
+      }
+      render();
+    });
   });
   $('#start-b-name').addEventListener('input', e => {
     if (!state.startB) state.startB = { name: '', x: 0, y: 0 };
@@ -520,17 +534,19 @@ function bindEvents() {
     }
     render();
   });
-  $('#btn-toggle-end-reverse').addEventListener('click', () => {
-    state.endCMode = !state.endCMode;
-    if (state.endCMode && !state.endC) {
-      const az = dmsToDecimal(state.endAzimuth.d, state.endAzimuth.m, state.endAzimuth.s);
-      state.endC = {
-        name: 'C',
-        x: state.endPoint.x - 100 * Math.cos(az * DEG),
-        y: state.endPoint.y - 100 * Math.sin(az * DEG)
-      };
-    }
-    render();
+  $$('input[name="end_source"]').forEach(r => {
+    r.addEventListener('change', e => {
+      state.endCMode = (e.target.value === 'reverse');
+      if (state.endCMode && !state.endC) {
+        const az = dmsToDecimal(state.endAzimuth.d, state.endAzimuth.m, state.endAzimuth.s);
+        state.endC = {
+          name: 'C',
+          x: state.endPoint.x + 100 * Math.cos(az * DEG),
+          y: state.endPoint.y + 100 * Math.sin(az * DEG)
+        };
+      }
+      render();
+    });
   });
   $('#end-c-name').addEventListener('input', e => {
     if (!state.endC) state.endC = { name: '', x: 0, y: 0 };

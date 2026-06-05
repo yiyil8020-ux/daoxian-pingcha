@@ -53,9 +53,19 @@
       </div>
 
       <div class="az-block">
-        <div class="az-block-row">
+        <div class="form-row" style="margin-bottom: 8px;">
+          <div class="form-field" style="grid-column: span 3;">
+            <div class="radio-group">
+              <legend>起始方位角来源：</legend>
+              <label><input type="radio" name="start_source" value="manual" checked> 直接输入</label>
+              <label><input type="radio" name="start_source" value="reverse"> 已知点坐标反算</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="az-block-row" id="start-manual-panel">
           <label class="form-field dms-field az-block-input">
-            <span>起始方位角</span>
+            <span>直接输入起始方位角</span>
             <div class="dms-input" id="start-az-dms-row">
               <input type="number" id="start-az-d" inputmode="numeric" placeholder="°">
               <span>°</span>
@@ -68,26 +78,25 @@
                    placeholder="十进制度, 如 96.86" hidden>
           </label>
           <button type="button" id="btn-toggle-start-decimal" class="link-btn" title="切换为十进制输入">⇄ 十进制</button>
-          <button type="button" id="btn-toggle-start-reverse" class="link-btn" title="用两个已知点反算方位角">📐 反算</button>
         </div>
 
         <div id="start-reverse-panel" class="reverse-panel" hidden>
           <div class="form-row">
             <label class="form-field">
-              <span>已知点 B 名</span>
+              <span>已知点(后视)名</span>
               <input type="text" id="start-b-name" maxlength="4" value="B" autocomplete="off">
             </label>
             <label class="form-field">
-              <span>B 点 X (m)</span>
+              <span>已知点 X (m)</span>
               <input type="number" id="start-b-x" step="0.001" inputmode="decimal">
             </label>
             <label class="form-field">
-              <span>B 点 Y (m)</span>
+              <span>已知点 Y (m)</span>
               <input type="number" id="start-b-y" step="0.001" inputmode="decimal">
             </label>
           </div>
           <div class="computed-display">
-            → α_AB = <b id="start-b-az-display">—</b>
+            → α_<span id="start-az-name-display">BA</span> = <b id="start-b-az-display">—</b>
           </div>
         </div>
       </div>
@@ -109,9 +118,19 @@
         </div>
 
         <div class="az-block">
-          <div class="az-block-row">
+          <div class="form-row" style="margin-bottom: 8px; margin-top: 12px;">
+            <div class="form-field" style="grid-column: span 3;">
+              <div class="radio-group">
+                <legend>终止方位角来源：</legend>
+                <label><input type="radio" name="end_source" value="manual" checked> 直接输入</label>
+                <label><input type="radio" name="end_source" value="reverse"> 坐标反算</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="az-block-row" id="end-manual-panel">
             <label class="form-field dms-field az-block-input">
-              <span>终止方位角</span>
+              <span>直接输入终止方位角</span>
               <div class="dms-input" id="end-az-dms-row">
                 <input type="number" id="end-az-d" inputmode="numeric" placeholder="°">
                 <span>°</span>
@@ -124,26 +143,25 @@
                      placeholder="十进制度, 如 96.86" hidden>
             </label>
             <button type="button" id="btn-toggle-end-decimal" class="link-btn" title="切换为十进制输入">⇄ 十进制</button>
-            <button type="button" id="btn-toggle-end-reverse" class="link-btn" title="用两个已知点反算方位角">📐 反算</button>
           </div>
 
           <div id="end-reverse-panel" class="reverse-panel" hidden>
             <div class="form-row">
               <label class="form-field">
-                <span>前一点 C 名 <small class="hint">(C→D 终止边)</small></span>
+                <span>已知点(前视)名 <small class="hint">(终止边)</small></span>
                 <input type="text" id="end-c-name" maxlength="4" value="C" autocomplete="off">
               </label>
               <label class="form-field">
-                <span>C 点 X (m)</span>
+                <span>已知点 X (m)</span>
                 <input type="number" id="end-c-x" step="0.001" inputmode="decimal">
               </label>
               <label class="form-field">
-                <span>C 点 Y (m)</span>
+                <span>已知点 Y (m)</span>
                 <input type="number" id="end-c-y" step="0.001" inputmode="decimal">
               </label>
             </div>
             <div class="computed-display">
-              → α_CD = <b id="end-c-az-display">—</b>
+              → α_<span id="end-az-name-display">CD</span> = <b id="end-c-az-display">—</b>
             </div>
           </div>
         </div>
